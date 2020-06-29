@@ -3,7 +3,10 @@ package com.unisc.pdm;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -30,6 +33,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.List;
 
 //https://stackoverflow.com/questions/48642695/capture-image-using-dynamic-co-ordinates-through-the-camera
@@ -41,6 +46,8 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
     SurfaceHolder surfaceHolder;
     PictureCallback jpegCallback;
     Button btnCapture, btnSave;
+    private DataBaseHelper2 helper;
+    List<Imagem> listaInfo = new ArrayList<>();
 
     int angle = 0, count = 0, MAX = 5, roi = 128;
     private static final int CAMERA_REQUEST_CODE = 100;
@@ -51,7 +58,7 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
     ImageView photoImage = null, imageRoi = null;
     TextView txtR, txtG, txtB, txtCount, txtDebug, txtLastSample;
     Boolean autoscale = true, reverse = false;
-    float X = 0, Y = 0;
+    float X = 165, Y = 203;
     EditText txtSample;
     String[] nome;
     String[][] data;
@@ -103,24 +110,28 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
         btnCapture.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (txtSample.getText().toString().equals("") == false)
-                    if (checkName(txtSample.getText().toString()) == false)
+                if (txtSample.getText().toString().equals("") == false) {
+                    if (checkName(txtSample.getText().toString()) == false) {
                         camera.takePicture(null, null, jpegCallback);
-                    else
+                        Imagem informacao = new Imagem();
+                        informacao.setNome(txtSample.getText().toString());
+                        informacao.setR(txtR.toString());
+                        informacao.setG(txtG.toString());
+                        informacao.setB(txtB.toString());
+                        listaInfo.add(informacao);
+                    } else
                         MessageBox("Please inform different name!");
-                else
+                }else
                     MessageBox("Please inform sample name!");
             }
         });
 
         btnSave = findViewById(R.id.btnSave);
         btnSave.setEnabled(false);
-        btnSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ///abrir activity nova
-            }
-        });
+
+
+        helper = new DataBaseHelper2(this);
+
 
         //modificar
         imageRoi.setOnTouchListener(new View.OnTouchListener() {
@@ -205,8 +216,8 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
     public Bitmap CenterCrop(Bitmap source, int newHeight, int newWidth) {
         int sourceWidth = source.getWidth();
         int sourceHeight = source.getHeight();
-        float left = (newWidth - sourceWidth) / 2f;
-        float top = (newHeight - sourceHeight) / 2f;
+        float left = (-Y) * 1.261f;
+        float top = X - 352;
         RectF targetRect = new RectF(left, top, left + sourceWidth, top + sourceHeight);
         txtDebug.setText(left + "," + top + "," + (left + sourceWidth) + "," + (top + sourceHeight));
         Bitmap dest = Bitmap.createBitmap(newWidth, newHeight, source.getConfig());
@@ -416,5 +427,71 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
         camera.stopPreview();
         camera.release();
         camera = null;
+    }
+
+    public void cliqueSave(View view) {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        int num = 0;
+        for (int i = 0; i < listaInfo.size(); i++) {
+            ContentValues c = new ContentValues();
+            c.put("R",listaInfo.get(i).getR());
+            c.put("G",listaInfo.get(i).getG());
+            c.put("B",listaInfo.get(i).getB());
+            c.put("nome",listaInfo.get(i).getNome());
+
+            long res = db.insert("cores", null, c);
+            if(res != -1){
+                num ++;
+                //inseriu
+                Toast.makeText(this,"Dados" + num  + " " + "salvos no banco",Toast.LENGTH_SHORT).show();
+
+            }else{
+                Toast.makeText(this,"Não foi possível inserir os dados",Toast.LENGTH_SHORT).show();
+            }
+        }
+        Intent intent = new Intent(this, ListaInformacoes.class);
+        startActivity(intent);
+    }
+    protected void  onDestroy() {
+        helper.close();
+        super.onDestroy();
+    }
+    class Imagem {
+        String nome;
+        String r;
+        String g;
+        String b;
+
+        public String getNome() {
+            return nome;
+        }
+
+        public void setNome(String nome) {
+            this.nome = nome;
+        }
+
+        public String getR() {
+            return r;
+        }
+
+        public void setR(String r) {
+            this.r = r;
+        }
+
+        public String getG() {
+            return g;
+        }
+
+        public void setG(String g) {
+            this.g = g;
+        }
+
+        public String getB() {
+            return b;
+        }
+
+        public void setB(String b) {
+            this.b = b;
+        }
     }
 }

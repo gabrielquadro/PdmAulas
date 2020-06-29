@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void aula11Click(View view) { startActivity(new Intent(this,Aula11Activity.class)); }
 
-    public void aula12Click(View view) { startActivity(new Intent(this,Aula12Activity.class)); }
+//    public void aula12Click(View view) { startActivity(new Intent(this,Aula12Activity.class)); }
 
 
     @Override
