@@ -78,12 +78,40 @@ public class ListaInformacoes extends AppCompatActivity {
             c.moveToNext();
         }
         c.close();
-        SimpleAdapter adapter = new CoresAdapter(this,lista,R.layout.listagem2,new String[] {"nome"},
+        SimpleAdapter adapter = new CoresAdapter(this,lista,R.layout.listagem2,new String[] {"nome","R","G","B"},
                 new int[] {R.id.tvNome});
         listView.setAdapter(adapter);
     }
 
     private class CoresAdapter extends SimpleAdapter {
+        String r = "";
+        String b = "";
+        String g = "";
+        public CoresAdapter(Context ctx, List<Map<String, Object>> lista, int listagem2, String[] strings, int[] ints) {
+            super(ctx,lista,listagem2,strings,ints);
+            this.r = strings[1].toString();
+            this.g = strings[2].toString();
+            this.b = strings[3].toString();
+
+        }
+
+        int R = Integer.parseInt(r);
+        int B = Integer.parseInt(b);
+        int G = Integer.parseInt(g);
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = super.getView(position, convertView, parent);
+
+            if(position!= -1){
+
+                view.setBackgroundColor(Color.rgb(R,G,B));
+            }
+            return view;
+        }
+    }
+
+    /*private class CoresAdapter extends SimpleAdapter {
         public CoresAdapter(Context ctx, List<Map<String, Object>> lista, int listagem2, String[] strings, int[] ints) {
             super(ctx,lista,listagem2,strings,ints);
         }
@@ -103,5 +131,5 @@ public class ListaInformacoes extends AppCompatActivity {
             }
             return view;
         }
-    }
+    }*/
 }
