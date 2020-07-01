@@ -25,14 +25,12 @@ public class ListaDeCapturas extends AppCompatActivity {
     List<Map<String, Object>> lista;
     private DataBaseHelper2 helper;
     ListView listView;
-    //public ArrayList<String> rs;
     TextView tvR, tvG, tvB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lista_informacoes);
-        //rs = new ArrayList<>();
         //carrega as info do banco e põe na lista
         loadLista();
 
@@ -73,9 +71,7 @@ public class ListaDeCapturas extends AppCompatActivity {
             String G = c.getString(2);
             String B = c.getString(3);
             String nome = c.getString(4);
-            //String teste = c.getString(c.getColumnIndex("R"));
 
-            //rs.add(teste);
             //poe as informações buscadas no map
             map.put("id",id);
             map.put("R",R);
