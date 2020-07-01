@@ -1,7 +1,5 @@
 package com.unisc.pdm;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -19,7 +17,6 @@ import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.hardware.Camera.*;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -36,7 +33,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-
 //https://stackoverflow.com/questions/48642695/capture-image-using-dynamic-co-ordinates-through-the-camera
 public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback {
 
@@ -46,8 +42,10 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
     SurfaceHolder surfaceHolder;
     PictureCallback jpegCallback;
     Button btnCapture, btnSave;
+    //banco
     private DataBaseHelper2 helper;
-    List<Imagem> listaInfo = new ArrayList<>();
+    //lista onde armazena as capturas feitas
+    List<CapturaImagemInfo> listaCapturas = new ArrayList<>();
 
     int angle = 0, count = 0, MAX = 5, roi = 128;
     private static final int CAMERA_REQUEST_CODE = 100;
@@ -113,12 +111,12 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
                 if (txtSample.getText().toString().equals("") == false) {
                     if (checkName(txtSample.getText().toString()) == false) {
                         camera.takePicture(null, null, jpegCallback);
-                        Imagem informacao = new Imagem();
+                        CapturaImagemInfo informacao = new CapturaImagemInfo();
                         informacao.setNome(txtSample.getText().toString());
-                        informacao.setR(txtR.toString());
-                        informacao.setG(txtG.toString());
-                        informacao.setB(txtB.toString());
-                        listaInfo.add(informacao);
+                        informacao.setR(txtR.getText().toString());
+                        informacao.setG(txtG.getText().toString());
+                        informacao.setB(txtB.getText().toString());
+                        listaCapturas.add(informacao);
                     } else
                         MessageBox("Please inform different name!");
                 }else
@@ -128,12 +126,9 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
 
         btnSave = findViewById(R.id.btnSave);
         btnSave.setEnabled(false);
-
-
+        //helper do banco
         helper = new DataBaseHelper2(this);
 
-
-        //modificar
         imageRoi.setOnTouchListener(new View.OnTouchListener() {
             PointF DownPT = new PointF(); // Record Mouse Position When Pressed Down
             PointF StartPT = new PointF(); // Record Start Position of 'img'
@@ -212,10 +207,10 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
         toast.show();
     }
 
-    //modificar
     public Bitmap CenterCrop(Bitmap source, int newHeight, int newWidth) {
         int sourceWidth = source.getWidth();
         int sourceHeight = source.getHeight();
+        //pega a iamgem da ROI
         float left = (-Y) * 1.261f;
         float top = X - 352;
         RectF targetRect = new RectF(left, top, left + sourceWidth, top + sourceHeight);
@@ -254,13 +249,9 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
 
         //salvar banco de dados
 
-        txtR.setText("R :"
-                + (redTotal / (bmp.getHeight() * bmp.getWidth())));
-        txtG.setText("G :"
-                + (greenTotal
-                / (bmp.getHeight() * bmp.getWidth())));
-        txtB.setText("B :"
-                + (blueTotal / (bmp.getHeight() * bmp.getWidth())));
+        txtR.setText(Float.toString(redTotal / (bmp.getHeight() * bmp.getWidth())));
+        txtG.setText(Float.toString(greenTotal/ (bmp.getHeight() * bmp.getWidth())));
+        txtB.setText(Float.toString(blueTotal / (bmp.getHeight() * bmp.getWidth())));
 
     }
 
@@ -428,35 +419,42 @@ public class TrabalhoActivity extends Activity implements SurfaceHolder.Callback
         camera.release();
         camera = null;
     }
-
+    //salvamento no banco
     public void cliqueSave(View view) {
+        //instancia de banco para escrever nele
         SQLiteDatabase db = helper.getWritableDatabase();
+        //controle de salvamento no toast
         int num = 0;
-        for (int i = 0; i < listaInfo.size(); i++) {
+        //percorre a lista de captura
+        for (int i = 0; i < listaCapturas.size(); i++) {
             ContentValues c = new ContentValues();
-            c.put("R",listaInfo.get(i).getR());
-            c.put("G",listaInfo.get(i).getG());
-            c.put("B",listaInfo.get(i).getB());
-            c.put("nome",listaInfo.get(i).getNome());
-
+            c.put("R", listaCapturas.get(i).getR());
+            c.put("G", listaCapturas.get(i).getG());
+            c.put("B", listaCapturas.get(i).getB());
+            c.put("nome", listaCapturas.get(i).getNome());
+            //inserção no banco
             long res = db.insert("cores", null, c);
             if(res != -1){
                 num ++;
-                //inseriu
+                //inseriu no banco
                 Toast.makeText(this,"Dados" + num  + " " + "salvos no banco",Toast.LENGTH_SHORT).show();
 
             }else{
+                //erro ao inserir
                 Toast.makeText(this,"Não foi possível inserir os dados",Toast.LENGTH_SHORT).show();
             }
         }
-        Intent intent = new Intent(this, ListaInformacoes.class);
+        //abre a lista
+        Intent intent = new Intent(this, ListaDeCapturas.class);
         startActivity(intent);
     }
     protected void  onDestroy() {
         helper.close();
         super.onDestroy();
     }
-    class Imagem {
+
+    //classe para armazena as informções da foro capturada
+    class CapturaImagemInfo {
         String nome;
         String r;
         String g;

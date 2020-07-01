@@ -5,13 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".ListaInformacoes">
+    tools:context=".ListaDeCapturas">
 
     <Button
         android:id="@+id/btnLimpa"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="cliwueLimpar"
+        android:onClick="CliqueLimpar"
         android:text="Limpar lista"/>
 
     <ListView
